@@ -1,0 +1,27 @@
+{% extends 'base_layout.html' %}
+
+{% block content %}
+
+{% if request.user.username==ownerUserName %}
+<form class="add-members" action="/team/{{id}}" method="post">
+  {%csrf_token%}
+  <input type="text" name="username">
+  <button type="submit">Add member</button>
+</form>
+{% endif %}
+<p>{{message}}</p>
+<div class="list-of-members">
+  <p>Owner</p>
+  <ul>
+    <li>{{ownerUserName}}</li>
+  </ul>
+  {% if flag %}
+  <p>List of other team members</p>
+  <ul>
+    {% for member in members %}
+    <li>{{member.user.username}}</li>
+    {% endfor %}
+  </ul>
+  {%endif%}
+</div>
+{%endblock%}

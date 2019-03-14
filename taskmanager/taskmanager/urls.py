@@ -24,4 +24,8 @@ urlpatterns = [
     url(r'^login',views.login_view,name='login'),
     url(r'^signup',views.signup_view,name='signup'),
     url(r'^logout',views.logout_view,name='logout'),
+    url(r'^teams-and-tasks-list',views.teamsandtasks_view,name="teams"),
+    url(r'^create-team-name',views.createteamname_view,name="createteamname"),
+    url(r'^team/(?P<pk>[0-9]+)', views.team_view,name="team"),
+    url(r'^team/(?P<pk>[0-9]+)/create-task',views.create_task_view,name="createtask"),
 ]

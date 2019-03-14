@@ -1,0 +1,32 @@
+{% extends 'base_layout.html' %}
+{% block content %}
+
+    <form class="create-team-name" action="/create-team-name/" method="GET">
+      {%csrf_token%}
+
+      <button type="submit">Create Team</button>
+    </form>
+    <form class="create-my-tasks" action="/create-task/" method="GET">
+      {%csrf_token%}
+      <button type="submit">Create Task for yourself</button>
+    </form>
+    <h1>Teams owned by me</h1>
+    <div class="myteams">
+      {% for myTeam in myTeams %}
+        <div class="myTeam">
+          <h2><a href="/team/{{myTeam.id}}" > {{ myTeam.team_name }} </a> </h2>
+        </div>
+      {% endfor %}
+    </div>
+    <h1>Teams I am part of </h1>
+    <div class="memberteams">
+      {% for memberTeam in memberTeamName %}
+        <div class="memberTeam">
+          <h2><a href="/team/{{memberTeam.id}}" > {{ memberTeam.team_name }} </a> </h2>
+
+        </div>
+      {% endfor %}
+    </div>
+
+
+{% endblock %}
