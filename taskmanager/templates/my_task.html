@@ -1,0 +1,13 @@
+{% extends 'base_layout.html' %}
+
+{% block content %}
+
+<form class="edit-my-task" action="/{{request.user.username}}/task/{{myTask.id}}/edit" method="GET">
+  {% csrf_token %}
+  <button type="submit">Edit Task</button>
+</form>
+
+<p>Title:      {{myTask.title}}</p>
+<p>Description:{{myTask.description}}</p>
+
+{% endblock %}

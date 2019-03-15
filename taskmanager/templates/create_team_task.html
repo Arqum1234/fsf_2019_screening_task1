@@ -1,0 +1,14 @@
+{% extends 'base_layout.html' %}
+
+{% block content %}
+
+<form class="create-team-task" action="/team/{{team_id}}/create-task" method="post">
+  {%csrf_token%}
+  <input type="text" name="taskname">
+  <input  type="text" name="description">
+  <input type="text" name="assignee">
+  <button type="submit">Add My Task</button>
+</form>
+<p>{{message}}</p>
+
+{% endblock %}  

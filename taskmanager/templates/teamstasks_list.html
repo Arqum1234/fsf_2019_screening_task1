@@ -6,7 +6,7 @@
 
       <button type="submit">Create Team</button>
     </form>
-    <form class="create-my-tasks" action="/create-task/" method="GET">
+    <form class="create-my-tasks" action="/{{request.user.username}}/create-task/" method="GET">
       {%csrf_token%}
       <button type="submit">Create Task for yourself</button>
     </form>
@@ -27,6 +27,13 @@
         </div>
       {% endfor %}
     </div>
-
+    <h1>List of my tasks </h1>
+    <div class="myTasks">
+      {% for myTask in myTasks %}
+        <div class="myTask">
+          <h2><a href="/{{request.user.username}}/task/{{myTask.id}}" > {{ myTask.title }} </a> </h2>
+        </div>
+      {% endfor %}
+    </div>
 
 {% endblock %}

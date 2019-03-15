@@ -10,11 +10,16 @@ class AllUser(models.Model):
     team= models.ForeignKey(Team,on_delete=models.CASCADE,default=None)
     user= models.ForeignKey(User,on_delete=models.CASCADE,default=None)
 
-class Task(models.Model):
+class TeamTask(models.Model):
     team = models.ForeignKey(Team,on_delete=models.CASCADE,default=None)
     title = models.CharField(max_length=100)
     description = models.CharField(max_length=500)
     assignedBy = models.CharField(max_length=100)
     assignee = models.CharField(max_length=100)
-    
+
+class MyTask(models.Model):
+    taskOwner = models.ForeignKey(User,on_delete=models.CASCADE,default=None)
+    title = models.CharField(max_length=100)
+    description = models.CharField(max_length=500)
+
 # Create your models here.
