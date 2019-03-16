@@ -1,0 +1,25 @@
+{% extends 'base_layout.html' %}
+
+{% block content %}
+
+<form class="task-modify-members"  method="post">
+  {%csrf_token%}
+  <nav>
+    <ul>
+      {% for teamMember in teamMembers %}
+        <li>
+          <label>{{teamMember.assignee}}</label>
+          {% if teamMember.assigned %}
+            <input type="checkbox" name="list" value="{{teamMember.id}}" checked>
+          {% else %}
+            <input type="checkbox" name="list" value="{{teamMember.id}}" >
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  </nav>
+
+  <button type="submit">Change Members</button>
+</form>
+
+{%  endblock %}

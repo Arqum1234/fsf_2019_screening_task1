@@ -5,17 +5,12 @@
 
 <form class="edit-team-task" action="/team/{{id}}/{{task.title}}/edit" method="GET">
   {% csrf_token %}
-  <button type="submit">Edit Task</button>
+    <button type="submit">Edit Task</button>
 </form>
-
-<form class="add-members" action="/team/{{id}}/{{task.title}}/add" method="GET">
+<br>
+<form class="modify-members" action="/team/{{id}}/{{task.title}}/modify" method="GET">
   {% csrf_token %}
-  <button type="submit">Add Member</button>
-</form>
-
-<form class="delete-members" action="/team/{{id}}/{{task.title}}/delete" method="GET">
-  {% csrf_token %}
-  <button type="submit">Delete Member</button>
+    <button type="submit">Change Members</button>
 </form>
 
 {% endif %}
@@ -23,8 +18,14 @@
 <p>Title:      {{task.title}}</p>
 <p>Description:{{task.description}}</p>
 <p>Assigned By:{{task.assignedBy}}</p>
-<p>Assigned To:{{task.assignee}}</p>
 
 
+<p>The task is assigned to :</p>
+{%  for taskMember in taskMembers %}
+
+{% if taskMember.assigned %}
+<p>{{taskMember.assignee}}</p>
+{% endif %}
+{% endfor %}
 
 {%  endblock %}

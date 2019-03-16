@@ -6,6 +6,8 @@
 
       <button type="submit">Create Team</button>
     </form>
+    <br>
+    <br>
     <form class="create-my-tasks" action="/{{request.user.username}}/create-task/" method="GET">
       {%csrf_token%}
       <button type="submit">Create Task for yourself</button>

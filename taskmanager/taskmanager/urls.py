@@ -27,13 +27,13 @@ urlpatterns = [
     url(r'^teams-and-tasks-list/$',views.teamsandtasks_view,name="teams"),
     url(r'^create-team-name/$',views.createteamname_view,name="createteamname"),
     url(r'^team/(?P<pk>[0-9]+)/$', views.team_view,name="team"),
-    url(r'^(?P<username>[a-zA-Z]+)/create-task$',views.create_my_task_view,name="createMyTask"),
+    url(r'^(?P<username>[a-zA-Z]+)/create-task/$',views.create_my_task_view,name="createMyTask"),
     url(r'^(?P<username>[a-zA-Z]+)/task/(?P<id>[0-9]+)/$',views.my_task_view,name="mytask"),
     url(r'^(?P<username>[a-zA-Z]+)/task/(?P<id>[0-9]+)/edit/$',views.my_task_edit_view,name="myTaskEdit"),
     url(r'^team/(?P<team_id>[0-9]+)/create-task$', views.team_create_task_view,name="createTeamTask"),
     url(r'^team/(?P<team_id>[0-9]+)/(?P<taskname>[a-zA-Z]+)/$', views.team__task_view,name="teamTask"),
-    url(r'^team/(?P<team_id>[0-9]+)/(?P<taskname>[a-zA-Z]+)/edit/$', views.team_task_edit_view,name="teamTaskEdit"),
-    url(r'^team/(?P<team_id>[0-9]+)/(?P<taskname>[a-zA-Z]+)/add/$', views.team_task_add_view,name="teamTaskAdd"),
-    url(r'^team/(?P<team_id>[0-9]+)/(?P<taskname>[a-zA-Z]+)/delete/$', views.team_task_delete_view,name="teamTaskDelete"),
-    
+    url(r'^team/(?P<team_id>[0-9]+)/(?P<taskname>[a-zA-Z]+)/edit$', views.team_task_edit_view,name="teamTaskEdit"),
+    url(r'^team/(?P<team_id>[0-9]+)/(?P<taskname>[a-zA-Z]+)/modify$', views.team_task_modify_view,name="teamTaskModify"),
+
+
 ]

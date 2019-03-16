@@ -1,18 +1,19 @@
 {% extends 'base_layout.html' %}
 
 {% block content %}
+
+
 <form class="create-team-task" action="/team/{{id}}/create-task" method="GET">
   {% csrf_token %}
   <button type="submit">Create Task</button>
 </form>
-
-
-
+<br>
+<br>
 {% if request.user.username == ownerUserName %}
 <form class="add-members" action="/team/{{id}}/" method="post">
   {%csrf_token%}
+  <button type="submit">Add member </button>
   <input type="text" name="username">
-  <button type="submit">Add member</button>
 </form>
 {% endif %}
 <p>{{message}}</p>
@@ -37,7 +38,6 @@
   <ul>
     {% for taskByMe in tasksByMe %}
     <p> <a href="/team/{{id}}/{{taskByMe.title}}">{{taskByMe.title}}</a> </p>
-    <p>Assigned To : {{taskByMe.assignee}}</p>
     {% endfor %}
   </ul>
 </div>
@@ -49,13 +49,12 @@
   <p>List of tasks assigned to me</p>
   <ul>
     {% for taskForMe in tasksForMe %}
-    <p> <a href="/team/{{id}}/{{taskForMe.title}}">{{taskForMe.title}}</a> </p>
-    <p>Assigned By : {{taskForMe.assignedBy}}</p>
+    <p> <a href="/team/{{id}}/{{taskForMe.taskDetail.title}}">{{taskForMe.taskDetail.title}}</a> </p>
+    <p>Assigned By : {{taskForMe.taskDetail.assignedBy}}</p>
     {% endfor %}
   </ul>
 </div>
 {% endif %}
-
 
 {% if flag3 %}
 <div class="other-tasks">
@@ -64,10 +63,10 @@
     {% for otherTask in otherTasks %}
     <p> <a href="/team/{{id}}/{{otherTask.title}}">{{otherTask.title}}</a> </p>
     <p>Assigned By : {{otherTask.assignedBy}}</p>
-    <p>Assigned To : {{otherTask.assignee}}</p>
     {% endfor %}
   </ul>
 </div>
 {% endif %}
+
 
 {%endblock%}

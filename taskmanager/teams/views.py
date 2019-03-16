@@ -2,7 +2,7 @@
 from django.shortcuts import render,redirect
 from django.contrib.auth.forms import UserCreationForm,AuthenticationForm
 from django.contrib.auth import login,logout
-from .models import User,Team,AllUser,TeamTask,MyTask
+from .models import User,Team,AllUser,TeamTask,MyTask,TaskDetail
 
 def home(request):
 
@@ -86,20 +86,39 @@ def team_view(request,pk):
     #if len(members==0):flag=0
 
     team=Team.objects.get(id=pk)
-    tasksByMe = TeamTask.objects.filter(team=team).filter(assignedBy=request.user.username)
-    tasksForMe = TeamTask.objects.filter(team=team).filter(assignee=request.user.username)
-    otherTasks = TeamTask.objects.exclude(pk__in=tasksByMe.values_list('pk', flat=True)).exclude(pk__in=tasksForMe.values_list('pk', flat=True))
+    tasksByMe = TaskDetail.objects.filter(team=team).filter(assignedBy=request.user.username)
+    # tasksForMe=TaskDetail.objects.filter(team=team)
+    # if tasksForMe.count()>0:
+    #     tasksForMe = TeamTask.objects.filter(taskDetail=TaskDetail.objects.filter(team=team).get(title=teamname)).filter(assignee=request.user.username)
+    tasksForMe=[]
+    taskDetails = TaskDetail.objects.filter(team=team)
+    for taskDetail in taskDetails:
+        obj=TeamTask.objects.filter(taskDetail=taskDetail).filter(assignee=request.user.username).filter(assigned=True)
+        if len(obj)>0:
+            tasksForMe.append(obj[0])
+    exc=[]
+    for taskForMe in tasksForMe:
+        exc.append(taskForMe.taskDetail)
+    otherTasks = TaskDetail.objects.exclude(pk__in=tasksByMe.values_list('pk', flat=True)).exclude(id__in=[ex.id for ex in exc])
+
+    # else:
+    #     otherTasks = TaskDetail.objects.exclude(pk__in=tasksByMe.values_list('pk', flat=True))
     otherTasks = otherTasks.filter(team=team)
     flag1=0
     flag2=0
     flag3=0
-    if len(tasksByMe)>0: flag1=1
-    if len(tasksForMe)>0: flag2=1
-    if len(otherTasks)>0: flag3=1
+    if tasksByMe.count()>0:
+        flag1=1
+    if len(tasksForMe)>0:
+        flag2=1
+    if otherTasks.count()>0:
+        flag3=1
+
     return render(request,'team.html',{'message':message,'id':pk,'members':members,
     'flag':flag,'ownerUserName':ownerUserName,'request':request,
     'tasksByMe':tasksByMe,'tasksForMe':tasksForMe,'otherTasks':otherTasks,
     'flag1':flag1,'flag2':flag2,'flag3':flag3})
+
 
 def createteamname_view(request):
     message=""
@@ -169,13 +188,31 @@ def team_create_task_view(request,team_id):
         if len(exists)>0:
             exists = AllUser.objects.filter(team=team).filter(user=User.objects.get(username=assignee))
         if request.user.username == assignee or len(exists)>0 :
-            taskExists = TeamTask.objects.filter(team=team).filter(title=title)
+            taskExists = TaskDetail.objects.filter(team=team).filter(title=title)
             if len(taskExists)>0:
                 message="Task title exists!!"
             else:
-                obj = TeamTask(team=team,title=title,description=description,assignee=assignee,assignedBy=request.user.username)
-                obj.save()
-                return redirect('team',team_id)
+                teamMembers = AllUser.objects.filter(team=team)
+                i=0
+                objTask = TaskDetail(team=team,title=title,description=description,assignedBy=request.user.username)
+                objTask.save()
+                print(len(teamMembers))
+                for teamMember in teamMembers:
+                    if teamMember.user.username == assignee:
+                        obj = TeamTask(taskDetail=objTask,assignee=assignee,assigned=True)
+                        obj.save()
+                        i=i+1
+                    else:
+                        obj = TeamTask(taskDetail=objTask,assignee=teamMember.user.username,assigned=False)
+                        obj.save()
+                if team.owner.username == assignee:
+                    obj = TeamTask(taskDetail=objTask,assignee=assignee,assigned=True)
+                    obj.save()
+                else:
+                    obj = TeamTask(taskDetail=objTask,assignee=team.owner.username,assigned=False)
+                    obj.save()
+                print(i)
+                return redirect('teamTask',team_id,title)
         else:
             message="User does not belong to the team!!!"
     return render(request,'create_team_task.html',{'team_id':team_id,'message':message})
@@ -183,8 +220,11 @@ def team_create_task_view(request,team_id):
 
 def team__task_view(request,team_id,taskname):
     team=Team.objects.get(id=team_id)
-    task=TeamTask.objects.filter(team=team).get(title=taskname)
-    return render(request,'task.html',{'task':task,'request':request,'id':team_id})
+    taskMembers=TaskDetail.objects.filter(team=team).filter(title=taskname)
+    task = taskMembers[0]
+    taskMembers = TeamTask.objects.filter(taskDetail=taskMembers[0])
+    #print(len(taskMembers))
+    return render(request,'task.html',{'taskMembers':taskMembers,'request':request,'id':team_id,'task':task})
 
 
 def team_task_edit_view(request,team_id,taskname):
@@ -193,11 +233,11 @@ def team_task_edit_view(request,team_id,taskname):
         team=Team.objects.get(id=team_id)
         title=request.POST.get('taskname')
         description=request.POST.get('description')
-        exists=TeamTask.objects.filter(team=team).filter(title=title)
+        exists=TaskDetail.objects.filter(team=team).filter(title=title)
         if len(exists)>0 and taskname!=title:
             message="You already have a task with that name!!!"
         else:
-            objs=TeamTask.objects.filter(team=team).filter(title=taskname)
+            objs=TaskDetail.objects.filter(team=team).filter(title=taskname)
             for obj in objs:
                 obj.title=title
                 obj.description=description
@@ -205,12 +245,19 @@ def team_task_edit_view(request,team_id,taskname):
             return redirect('teamTask',team_id,title)
     return render(request,'team_task_edit.html',{'message':message,'request':request,'id':team_id})
 
-def team_task_add_view(request,team_id,taskname):
-    message=""
+def team_task_modify_view(request,team_id,taskname):
+    team=Team.objects.get(id=team_id)
+    taskDetail = TaskDetail.objects.filter(team=team).get(title=taskname)
+    teamMembers = TeamTask.objects.filter(taskDetail=taskDetail)
     if request.method=='POST':
-        username=request.POST.get('username')
-        team=Team.objects.get(id=team_id)
-        exists = User.objects.filter(username=username)
-        if len(exists)>0:
-            exists = AllUser.objects.filter(team=team).filter(user=exists[0])
-            
+        taskMemberIds=request.POST.getlist('list')
+        taskMembers = TeamTask.objects.filter(taskDetail=taskDetail)
+        for taskMember in taskMembers:
+            taskMember.assigned=False
+            taskMember.save()
+        for taskMemberId in taskMemberIds:
+            obj=TeamTask.objects.get(id=taskMemberId)
+            obj.assigned = True
+            obj.save()
+        return redirect('teamTask',team_id,taskname)
+    return render(request,'task_modify_members.html',{'teamMembers':teamMembers,'id':team_id,'taskname':taskname})

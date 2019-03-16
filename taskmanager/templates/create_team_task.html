@@ -4,11 +4,24 @@
 
 <form class="create-team-task" action="/team/{{team_id}}/create-task" method="post">
   {%csrf_token%}
-  <input type="text" name="taskname">
-  <input  type="text" name="description">
-  <input type="text" name="assignee">
-  <button type="submit">Add My Task</button>
+  <p>
+    <label>Title :</label>
+    <input type="text" name="taskname">
+  </p>
+  <br>
+  <p>
+    <label>Description :</label>
+  <p>
+  <textarea name="description" rows="8" cols="80"></textarea>
+  <br>
+  <p>
+    <label>Assignee :</label>
+    <input type="text" name="assignee">
+  </p>
+  <br>
+  <br>
+  <button type="submit">Add Task</button>
 </form>
 <p>{{message}}</p>
 
-{% endblock %}  
+{% endblock %}

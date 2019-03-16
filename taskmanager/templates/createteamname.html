@@ -4,8 +4,8 @@
 {% block content %}
 <form class="create-task" action="/create-team-name/" method="post">
   {%csrf_token%}
-  <input type="text" name="teamname">
   <button type="submit">Add Team</button>
+  <input type="text" name="teamname">
 </form>
 <p>{{message}}</p>
 
