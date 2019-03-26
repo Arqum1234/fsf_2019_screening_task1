@@ -1,0 +1,19 @@
+{% extends 'base_layout.html' %}
+
+{% block content %}
+
+
+<p>List of comments are:</p>
+<br>
+
+{%  for taskComment in taskComments %}
+
+<p>{{taskComment.comment}}</p>
+<p>Commented By {{taskComment.commentedBy}}</p>
+
+<br>
+
+{% endfor %}
+
+
+{% endblock %}

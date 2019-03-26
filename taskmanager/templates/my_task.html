@@ -9,5 +9,20 @@
 
 <p>Title:      {{myTask.title}}</p>
 <p>Description:{{myTask.description}}</p>
+<p>Status :{{myTask.status}}</p>
+
+<a href="/{{request.user.username}}/task/{{myTask.id}}/comments">View Comments</a>
+<br>
+
+<form class="my-task-add-comments"  method="POST">
+  {%csrf_token%}
+  <p>
+    <button type="submit">Add Comment </button>
+  <p>
+  <textarea name="myComment" rows="4" cols="80"></textarea>
+</form>
+
+
+
 
 {% endblock %}

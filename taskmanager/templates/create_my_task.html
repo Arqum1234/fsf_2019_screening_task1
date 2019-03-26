@@ -2,7 +2,7 @@
 
 {% block content %}
 
-<form class="create-my-task" action="/{{request.user}}/create-task/" method="post">
+<form class="create-my-task"  method="POST">
   {%csrf_token%}
   <p>
     <label>Title :</label>
@@ -15,7 +15,20 @@
   <textarea name="description" rows="8" cols="80"></textarea>
   <br>
   <br>
-  <button type="submit">Add My Task</button>
+
+    <p>
+       <label>Status</label>
+       <select id = "statusList" name="status">
+         <option value = "Planned">Planned</option>
+         <option value = "Inprogress">Inprogress</option>
+         <option value = "Done">Done</option>
+       </select>
+    </p>
+
+  <br>
+<button type="submit">Add My Task</button>
+
+
 </form>
 <p>{{message}}</p>
 

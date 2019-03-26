@@ -2,7 +2,7 @@
 from django.shortcuts import render,redirect
 from django.contrib.auth.forms import UserCreationForm,AuthenticationForm
 from django.contrib.auth import login,logout
-from .models import User,Team,AllUser,TeamTask,MyTask,TaskDetail
+from .models import User,Team,AllUser,TeamTask,MyTask,TaskDetail,TeamTaskComment,MyTaskComment
 
 def home(request):
 
@@ -143,28 +143,35 @@ def create_my_task_view(request,username):
     if request.method=='POST':
         title=request.POST.get('taskname')
         description=request.POST.get('description')
+        status = request.POST.getlist('status', None)[0]
         taskOwner=request.user
         exists=MyTask.objects.filter(title=title).filter(taskOwner=request.user)
         if len(exists)>0:
             message="You already have a task with that name!!!"
         else:
-            obj=MyTask(taskOwner=taskOwner,title=title,description=description)
+            obj=MyTask(taskOwner=taskOwner,title=title,description=description,status=status)
             obj.save()
             id=obj.id
             return redirect('mytask',username,id)
     return render(request,'create_my_task.html',{'message':message,'request':request})
 
 def my_task_view(request,username,id):
-    myTask = MyTask.objects.get(id=id)
-    return render(request,'my_task.html',{'myTask':myTask,'request':request})
-
+    if request.method == 'GET':
+        myTask = MyTask.objects.get(id=id)
+        return render(request,'my_task.html',{'myTask':myTask,'request':request})
+    else:
+        myComment = request.POST.get('myComment')
+        taskName = MyTask.objects.get(id=id).title
+        obj = MyTaskComment(taskOwner=request.user,taskName=taskName,comment=myComment)
+        obj.save()
+        return redirect('myTaskComments',username,id)
 def my_task_edit_view(request,username,id):
     message=""
     if request.method=='POST':
         obj=MyTask.objects.get(id=id)
-
         title=request.POST.get('taskname')
         description=request.POST.get('description')
+        status = request.POST.getlist('status', None)[0]
         exists=MyTask.objects.filter(title=title).filter(taskOwner=request.user)
 
         if len(exists)>0 and obj.title!=title:
@@ -172,6 +179,7 @@ def my_task_edit_view(request,username,id):
         else:
             obj.title=title
             obj.description=description
+            obj.status=status
             obj.save()
             return redirect('mytask',username,id)
     return render(request,'my_task_edit.html',{'message':message,'request':request,'id':id})
@@ -183,6 +191,7 @@ def team_create_task_view(request,team_id):
         title=request.POST.get('taskname')
         description=request.POST.get('description')
         assignee=request.POST.get('assignee')
+        status = request.POST.getlist('status', None)[0]
         exists = User.objects.filter(username=assignee)
         print(len(exists))
         if len(exists)>0:
@@ -194,7 +203,7 @@ def team_create_task_view(request,team_id):
             else:
                 teamMembers = AllUser.objects.filter(team=team)
                 i=0
-                objTask = TaskDetail(team=team,title=title,description=description,assignedBy=request.user.username)
+                objTask = TaskDetail(team=team,title=title,description=description,assignedBy=request.user.username,status=status)
                 objTask.save()
                 print(len(teamMembers))
                 for teamMember in teamMembers:
@@ -219,13 +228,20 @@ def team_create_task_view(request,team_id):
 
 
 def team__task_view(request,team_id,taskname):
-    team=Team.objects.get(id=team_id)
-    taskMembers=TaskDetail.objects.filter(team=team).filter(title=taskname)
-    task = taskMembers[0]
-    taskMembers = TeamTask.objects.filter(taskDetail=taskMembers[0])
-    #print(len(taskMembers))
-    return render(request,'task.html',{'taskMembers':taskMembers,'request':request,'id':team_id,'task':task})
-
+    if request.method == 'GET':
+        team=Team.objects.get(id=team_id)
+        taskMembers=TaskDetail.objects.filter(team=team).filter(title=taskname)
+        task = taskMembers[0]
+        taskMembers = TeamTask.objects.filter(taskDetail=taskMembers[0])
+        #print(len(taskMembers))
+        return render(request,'task.html',{'taskMembers':taskMembers,'request':request,'id':team_id,'task':task})
+    else:
+        comment = request.POST.get('comment')
+        team=Team.objects.get(id=team_id)
+        taskDetail=TaskDetail.objects.filter(team=team).get(title=taskname)
+        obj = TeamTaskComment(taskDetail=taskDetail,comment=comment,commentedBy=request.user.username)
+        obj.save()
+        return redirect('teamTaskComments',team_id,taskname)
 
 def team_task_edit_view(request,team_id,taskname):
     message=""
@@ -233,6 +249,7 @@ def team_task_edit_view(request,team_id,taskname):
         team=Team.objects.get(id=team_id)
         title=request.POST.get('taskname')
         description=request.POST.get('description')
+        status = request.POST.getlist('status', None)[0]
         exists=TaskDetail.objects.filter(team=team).filter(title=title)
         if len(exists)>0 and taskname!=title:
             message="You already have a task with that name!!!"
@@ -241,6 +258,7 @@ def team_task_edit_view(request,team_id,taskname):
             for obj in objs:
                 obj.title=title
                 obj.description=description
+                obj.status=status
                 obj.save()
             return redirect('teamTask',team_id,title)
     return render(request,'team_task_edit.html',{'message':message,'request':request,'id':team_id})
@@ -261,3 +279,15 @@ def team_task_modify_view(request,team_id,taskname):
             obj.save()
         return redirect('teamTask',team_id,taskname)
     return render(request,'task_modify_members.html',{'teamMembers':teamMembers,'id':team_id,'taskname':taskname})
+
+
+def team_task_comments_view(request,team_id,taskname):
+    team=Team.objects.get(id=team_id)
+    taskDetail = TaskDetail.objects.filter(team=team).get(title=taskname)
+    taskComments = TeamTaskComment.objects.filter(taskDetail=taskDetail)
+    return render(request,'team_task_comments.html',{'taskComments':taskComments})
+
+def my_task_comments_view(request,username,id):
+    taskName=MyTask.objects.get(id=id).title
+    myComments = MyTaskComment.objects.filter(taskOwner=request.user).filter(taskName=taskName)
+    return render(request,'my_task_comments.html',{'myComments':myComments})

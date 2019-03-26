@@ -18,7 +18,7 @@
 <p>Title:      {{task.title}}</p>
 <p>Description:{{task.description}}</p>
 <p>Assigned By:{{task.assignedBy}}</p>
-
+<p>Status : {{task.status}}</p>
 
 <p>The task is assigned to :</p>
 {%  for taskMember in taskMembers %}
@@ -28,4 +28,15 @@
 {% endif %}
 {% endfor %}
 
+
+<a href="/team/{{id}}/{{task.title}}/comments">View Comments</a>
+
+
+<form class="team-task-add-comments"  method="POST">
+  {%csrf_token%}
+  <p>
+    <button type="submit">Add Comment </button>
+  <p>
+  <textarea name="comment" rows="4" cols="80"></textarea>
+</form>
 {%  endblock %}
