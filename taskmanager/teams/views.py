@@ -3,6 +3,7 @@ from django.shortcuts import render,redirect
 from django.contrib.auth.forms import UserCreationForm,AuthenticationForm
 from django.contrib.auth import login,logout
 from .models import User,Team,AllUser,TeamTask,MyTask,TaskDetail,TeamTaskComment,MyTaskComment
+from django.contrib.auth.decorators import login_required
 
 def home(request):
 
@@ -41,6 +42,8 @@ def logout_view(request):
         logout(request)
         return redirect('home')
 
+
+@login_required(login_url="/login/")
 def teamsandtasks_view(request):
     myTeams = Team.objects.filter(owner=request.user)
     memberTeams = AllUser.objects.filter(user=request.user)
@@ -54,8 +57,13 @@ def teamsandtasks_view(request):
 
     return render(request,'teamstasks_list.html',{'myTeams':myTeams,'memberTeamName':memberTeamName,'request':request,'myTasks':myTasks})
 
+@login_required(login_url="/login/")
 def team_view(request,pk):
     message=""
+    lis1 = Team.objects.filter(id=pk).filter(owner = request.user)
+    lis2 = AllUser.objects.filter(team=Team.objects.get(id=pk)).filter(user = request.user)
+    if len(lis1)==0 and len(lis2)==0:
+        return render(request,'homepage.html')
     teamname=Team.objects.filter(id=pk)[0].team_name
     if request.method=="POST":
         username=request.POST.get('username')
@@ -119,7 +127,7 @@ def team_view(request,pk):
     'tasksByMe':tasksByMe,'tasksForMe':tasksForMe,'otherTasks':otherTasks,
     'flag1':flag1,'flag2':flag2,'flag3':flag3})
 
-
+@login_required(login_url="/login/")
 def createteamname_view(request):
     message=""
     if request.method=='POST':
@@ -137,9 +145,11 @@ def createteamname_view(request):
     else:
         return render(request,'createteamname.html',{'message':message})
 
-
+@login_required(login_url="/login/")
 def create_my_task_view(request,username):
     message=""
+    if request.user.username != username:
+        return render(request,'homepage.html')
     if request.method=='POST':
         title=request.POST.get('taskname')
         description=request.POST.get('description')
@@ -155,7 +165,13 @@ def create_my_task_view(request,username):
             return redirect('mytask',username,id)
     return render(request,'create_my_task.html',{'message':message,'request':request})
 
+@login_required(login_url="/login/")
 def my_task_view(request,username,id):
+    if request.user.username != username :
+        return render(request,'homepage.html')
+    myTask = MyTask.objects.get(id=id)
+    if myTask.taskOwner != request.user :
+        return render(request,'homepage.html')
     if request.method == 'GET':
         myTask = MyTask.objects.get(id=id)
         return render(request,'my_task.html',{'myTask':myTask,'request':request})
@@ -165,8 +181,15 @@ def my_task_view(request,username,id):
         obj = MyTaskComment(taskOwner=request.user,taskName=taskName,comment=myComment)
         obj.save()
         return redirect('myTaskComments',username,id)
+
+@login_required(login_url="/login/")
 def my_task_edit_view(request,username,id):
     message=""
+    if request.user.username != username :
+        return render(request,'homepage.html')
+    myTask = MyTask.objects.get(id=id)
+    if myTask.taskOwner != request.user :
+        return render(request,'homepage.html')
     if request.method=='POST':
         obj=MyTask.objects.get(id=id)
         title=request.POST.get('taskname')
@@ -184,8 +207,13 @@ def my_task_edit_view(request,username,id):
             return redirect('mytask',username,id)
     return render(request,'my_task_edit.html',{'message':message,'request':request,'id':id})
 
+@login_required(login_url="/login/")
 def team_create_task_view(request,team_id):
     message=""
+    lis1 = Team.objects.filter(id=team_id).filter(owner = request.user)
+    lis2 = AllUser.objects.filter(team=Team.objects.get(id=team_id)).filter(user = request.user)
+    if len(lis1)==0 and len(lis2)==0:
+        return render(request,'homepage.html')
     if request.method=='POST':
         team=Team.objects.get(id=team_id)
         title=request.POST.get('taskname')
@@ -226,8 +254,12 @@ def team_create_task_view(request,team_id):
             message="User does not belong to the team!!!"
     return render(request,'create_team_task.html',{'team_id':team_id,'message':message})
 
-
+@login_required(login_url="/login/")
 def team__task_view(request,team_id,taskname):
+    lis1 = Team.objects.filter(id=team_id).filter(owner = request.user)
+    lis2 = AllUser.objects.filter(team=Team.objects.get(id=team_id)).filter(user = request.user)
+    if len(lis1)==0 and len(lis2)==0:
+        return render(request,'homepage.html')
     if request.method == 'GET':
         team=Team.objects.get(id=team_id)
         taskMembers=TaskDetail.objects.filter(team=team).filter(title=taskname)
@@ -243,8 +275,16 @@ def team__task_view(request,team_id,taskname):
         obj.save()
         return redirect('teamTaskComments',team_id,taskname)
 
+@login_required(login_url="/login/")
 def team_task_edit_view(request,team_id,taskname):
     message=""
+    lis1 = Team.objects.filter(id=team_id).filter(owner = request.user)
+    lis2 = AllUser.objects.filter(team=Team.objects.get(id=team_id)).filter(user = request.user)
+    if len(lis1)==0 and len(lis2)==0:
+        return render(request,'homepage.html')
+    lis1 = TaskDetail.objects.filter(team=Team.objects.get(id=team_id)).filter(title=taskname).filter(assignedBy=request.user.username)
+    if len(lis1)==0 :
+        return render(request,'homepage.html')
     if request.method=='POST':
         team=Team.objects.get(id=team_id)
         title=request.POST.get('taskname')
@@ -263,7 +303,15 @@ def team_task_edit_view(request,team_id,taskname):
             return redirect('teamTask',team_id,title)
     return render(request,'team_task_edit.html',{'message':message,'request':request,'id':team_id})
 
+@login_required(login_url="/login/")
 def team_task_modify_view(request,team_id,taskname):
+    lis1 = Team.objects.filter(id=team_id).filter(owner = request.user)
+    lis2 = AllUser.objects.filter(team=Team.objects.get(id=team_id)).filter(user = request.user)
+    if len(lis1)==0 and len(lis2)==0:
+        return render(request,'homepage.html')
+    lis1 = TaskDetail.objects.filter(team=Team.objects.get(id=team_id)).filter(title=taskname).filter(assignedBy=request.user.username)
+    if len(lis1)==0 :
+        return render(request,'homepage.html')
     team=Team.objects.get(id=team_id)
     taskDetail = TaskDetail.objects.filter(team=team).get(title=taskname)
     teamMembers = TeamTask.objects.filter(taskDetail=taskDetail)
@@ -280,14 +328,24 @@ def team_task_modify_view(request,team_id,taskname):
         return redirect('teamTask',team_id,taskname)
     return render(request,'task_modify_members.html',{'teamMembers':teamMembers,'id':team_id,'taskname':taskname})
 
-
+@login_required(login_url="/login/")
 def team_task_comments_view(request,team_id,taskname):
+    lis1 = Team.objects.filter(id=team_id).filter(owner = request.user)
+    lis2 = AllUser.objects.filter(team=Team.objects.get(id=team_id)).filter(user = request.user)
+    if len(lis1)==0 and len(lis2)==0:
+        return render(request,'homepage.html')
     team=Team.objects.get(id=team_id)
     taskDetail = TaskDetail.objects.filter(team=team).get(title=taskname)
     taskComments = TeamTaskComment.objects.filter(taskDetail=taskDetail)
     return render(request,'team_task_comments.html',{'taskComments':taskComments})
 
+@login_required(login_url="/login/")
 def my_task_comments_view(request,username,id):
+    if request.user.username != username :
+        return render(request,'homepage.html')
+    myTask = MyTask.objects.get(id=id)
+    if myTask.taskOwner != request.user :
+        return render(request,'homepage.html')
     taskName=MyTask.objects.get(id=id).title
     myComments = MyTaskComment.objects.filter(taskOwner=request.user).filter(taskName=taskName)
     return render(request,'my_task_comments.html',{'myComments':myComments})

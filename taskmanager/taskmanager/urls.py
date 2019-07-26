@@ -33,6 +33,7 @@ urlpatterns = [
     url(r'^team/(?P<team_id>[0-9]+)/create-task$', views.team_create_task_view,name="createTeamTask"),
     url(r'^team/(?P<team_id>[0-9]+)/(?P<taskname>[a-zA-Z]+)/$', views.team__task_view,name="teamTask"),
     url(r'^team/(?P<team_id>[0-9]+)/(?P<taskname>[a-zA-Z]+)/edit$', views.team_task_edit_view,name="teamTaskEdit"),
+
     url(r'^team/(?P<team_id>[0-9]+)/(?P<taskname>[a-zA-Z]+)/modify$', views.team_task_modify_view,name="teamTaskModify"),
     url(r'^team/(?P<team_id>[0-9]+)/(?P<taskname>[a-zA-Z]+)/comments',views.team_task_comments_view,name="teamTaskComments"),
     url(r'^(?P<username>[a-zA-Z]+)/task/(?P<id>[0-9]+)/comments/$',views.my_task_comments_view,name="myTaskComments"),
